@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celebrity Lookalike Finder</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        
+        .upload-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+        
+        .drop-zone:hover {
+            border-color: #666;
+        }
+        
+        .results {
+            margin-top: 20px;
+        }
+        
+        .match-card {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .loading {
+            text-align: center;
+            display: none;
+        }
+        
+        .error {
+            color: red;
+            text-align: center;
+            margin: 10px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Celebrity Lookalike Finder</h1>
+        
+        <div class="upload-container">
+            <div class="drop-zone" id="dropZone">
+                <p>Drag and drop your photo here or click to select</p>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
+            
+            <div class="loading" id="loading">
+                <p>Analyzing your photo...</p>
+            </div>
+            
+            <div class="error" id="error"></div>
+            
+            <div class="results" id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const results = document.getElementById('results');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#666';
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#ccc';
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#ccc';
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            const file = files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            error.style.display = 'none';
+            loading.style.display = 'block';
+            results.innerHTML = '';
+            
+            axios.post('/upload', formData)
+                .then(response => {
+                    loading.style.display = 'none';
+                    displayResults(response.data.matches);
+                })
+                .catch(err => {
+                    loading.style.display = 'none';
+                    error.textContent = err.response?.data?.error || 'An error occurred 2';
+                    error.style.display = 'block';
+                });
+        }
+
+        function displayResults(matches) {
+            results.innerHTML = '<h2>Your Celebrity Matches:</h2>';
+            
+            matches.forEach((match, index) => {
+                const matchCard = document.createElement('div');
+                matchCard.className = 'match-card';
+                matchCard.innerHTML = `
+                    <span>#${index + 1}: ${match.name}</span>
+                    <span>${match.similarity.toFixed(1)}% match</span>
+                `;
+                results.appendChild(matchCard);
+            });
+        }
+    </script>
+</body>
+</html>
