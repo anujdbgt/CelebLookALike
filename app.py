@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
+#Face Model should not load everytime the request is coming
+#Can we improve the performance(using milvus)
+#Figure out a way to get more image data(People from different sites like linkedin)
+
 
 from flask import Flask, request, render_template, jsonify
 import face_recognition
